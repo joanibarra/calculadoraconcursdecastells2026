@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Calculadora de Castells · CDC 2024</title>
+<style>
+:root{
+  --red:#B91C1C;--red-l:#DC2626;--red-soft:#FEF2F2;
+  --green:#166534;--green-l:#16A34A;--green-soft:#F0FDF4;
+  --amber:#92400E;--amber-soft:#FFFBEB;
+  --blue:#1D4ED8;--blue-soft:#EFF6FF;
+  --ink:#1C1917;--ink-s:#78716C;--line:#E7E5E4;
+  --paper:#FAFAF9;--card:#FFF;
+  --gold:#B45309;--gold-soft:#FEF3C7;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--paper);color:var(--ink);font-size:14px;-webkit-text-size-adjust:100%;}
+button,select,input{touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
+
+/* HEADER */
+.hdr{background:var(--red);color:#fff;padding:14px 20px;display:flex;align-items:center;gap:12px;}
+.hdr-icon{font-size:28px;}
+.hdr h1{font-size:17px;font-weight:800;letter-spacing:-.02em;}
+.hdr p{font-size:11px;opacity:.7;margin-top:1px;}
+.hdr-badge{margin-left:auto;background:rgba(255,255,255,.18);border-radius:6px;padding:4px 10px;font-size:11px;font-weight:600;white-space:nowrap;}
+
+/* NAV */
+.nav{background:#fff;border-bottom:2px solid var(--line);display:flex;align-items:stretch;overflow-x:auto;gap:0;-webkit-overflow-scrolling:touch;}
+.nav::-webkit-scrollbar{height:3px;}
+.nav::-webkit-scrollbar-thumb{background:var(--line);}
+.ntab{padding:11px 16px;font-size:12px;font-weight:600;color:var(--ink-s);cursor:pointer;border:none;background:none;border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap;display:flex;align-items:center;gap:6px;flex-shrink:0;transition:color .12s;}
+.ntab:hover{color:var(--ink);}
+.ntab.active{color:var(--red);border-bottom-color:var(--red);}
+.ntab-close{width:16px;height:16px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:10px;color:var(--ink-s);background:none;border:none;cursor:pointer;flex-shrink:0;margin-left:2px;transition:all .1s;}
+.ntab-close:hover{background:var(--red);color:#fff;}
+.ntab-add{color:var(--red);border-left:1px solid var(--line);}
+.ntab-sep{width:1px;background:var(--line);margin:8px 0;flex-shrink:0;}
+.ntab-ref{border-left:1px solid var(--line);}
+
+/* PANE */
+.pane{display:none;max-width:1000px;margin:0 auto;padding:20px;}
+.pane.active{display:block;}
+
+/* CARD */
+.card{background:var(--card);border-radius:12px;border:1px solid var(--line);padding:18px 20px;margin-bottom:14px;}
+.ctitle{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-s);margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+
+/* COLLA HEADER */
+.colla-hdr{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
+.colla-name-input{font-size:18px;font-weight:800;border:none;background:transparent;color:var(--ink);padding:0;min-width:160px;width:auto;}
+.colla-name-input:focus{outline:none;border-bottom:2px solid var(--red);}
+.colla-score-badge{background:var(--red);color:#fff;border-radius:8px;padding:5px 14px;font-size:13px;font-weight:800;margin-left:auto;}
+.colla-score-badge span{font-size:10px;font-weight:400;opacity:.8;margin-left:4px;}
+
+/* FORM */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.field label{display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-s);margin-bottom:5px;}
+select{border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:16px;color:var(--ink);background:#fff;width:100%;-webkit-appearance:none;}
+select:focus{outline:2px solid var(--red-l);outline-offset:0;border-color:transparent;}
+.res-grp{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;}
+.res-btn{flex:1;padding:8px 4px;font-size:11px;font-weight:700;cursor:pointer;border:none;background:#fff;color:var(--ink-s);transition:all .1s;text-align:center;}
+.res-btn+.res-btn{border-left:1px solid var(--line);}
+.res-btn.sel-d{background:var(--green-soft);color:var(--green);}
+.res-btn.sel-c{background:var(--amber-soft);color:var(--amber);}
+.res-btn.sel-f{background:var(--red-soft);color:var(--red);}
+.btn{padding:9px 18px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;border:none;}
+.btn-red{background:var(--red);color:#fff;}
+.btn-red:hover{background:var(--red-l);}
+.btn-ghost{background:none;border:1px solid var(--line);color:var(--ink-s);}
+.btn-ghost:hover{border-color:var(--red);color:var(--red);}
+.pts-prev{display:flex;gap:16px;font-size:11px;color:var(--ink-s);background:var(--paper);border-radius:6px;padding:8px 12px;margin-top:8px;}
+.pts-prev b{color:var(--ink);}
+
+/* CASTLE LIST */
+.clist{display:flex;flex-direction:column;gap:6px;}
+.ci{display:grid;grid-template-columns:24px 1fr auto auto;align-items:center;gap:8px;padding:9px 12px;border-radius:9px;border:1px solid var(--line);background:#fff;}
+.ci.top{border-color:#86EFAC;background:#F0FDF4;}
+.ci.dup{opacity:.5;background:var(--paper);}
+.ci.fall{opacity:.55;}
+.ci-n{font-size:10px;font-weight:700;color:var(--ink-s);text-align:center;}
+.ci-info .name{font-weight:700;font-size:13px;}
+.ci-info .meta{font-size:10px;color:var(--ink-s);margin-top:1px;display:flex;gap:5px;flex-wrap:wrap;align-items:center;}
+.badge{display:inline-block;padding:1px 6px;border-radius:3px;font-size:9px;font-weight:800;letter-spacing:.03em;}
+.bd{background:var(--green-soft);color:var(--green);}
+.bc{background:var(--amber-soft);color:var(--amber);}
+.bf{background:var(--red-soft);color:var(--red);}
+.bt{background:var(--gold-soft);color:var(--gold);}
+.bdup{background:#F1F5F9;color:#64748B;}
+.ci-pts{font-size:14px;font-weight:800;text-align:right;white-space:nowrap;}
+.ci-pts.z{color:#D1D5DB;}
+.del-btn{font-size:13px;color:var(--ink-s);cursor:pointer;border:1px solid var(--line);background:none;padding:2px 8px;border-radius:4px;}
+.del-btn:hover{color:var(--red);border-color:var(--red);background:var(--red-soft);}
+.empty{text-align:center;padding:36px;color:var(--ink-s);font-size:13px;}
+.empty-ico{font-size:40px;opacity:.3;margin-bottom:8px;}
+
+/* SCORE KPIS */
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;}
+.kpi{background:var(--paper);border-radius:9px;padding:12px 14px;text-align:center;}
+.kpi-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-s);}
+.kpi-val{font-size:24px;font-weight:800;color:var(--red);line-height:1.1;margin:4px 0 2px;}
+.kpi-val.g{color:var(--green);}
+.kpi-sub{font-size:10px;color:var(--ink-s);}
+
+/* TOP3 TABLE */
+.t3{width:100%;border-collapse:collapse;font-size:13px;}
+.t3 th{padding:6px 10px;font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-s);border-bottom:2px solid var(--line);text-align:left;}
+.t3 th.r{text-align:right;}
+.t3 td{padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:middle;}
+.t3 tr:last-child td{border-bottom:none;}
+.t3 td.r{text-align:right;font-weight:700;}
+.rank-dot{width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;background:var(--gold-soft);color:var(--gold);}
+.total-row td{font-weight:800;border-top:2px solid var(--line) !important;padding-top:10px !important;}
+.total-pts{font-size:17px;color:var(--red);}
+
+/* CLASSIFICATION */
+.classif-table{width:100%;border-collapse:collapse;font-size:13px;}
+.classif-table th{padding:8px 12px;font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-s);border-bottom:2px solid var(--line);text-align:left;white-space:nowrap;}
+.classif-table th.r{text-align:right;}
+.classif-table td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:middle;}
+.classif-table tr:last-child td{border-bottom:none;}
+.classif-table tr{cursor:pointer;}
+.classif-table tr:hover td{background:var(--red-soft);}
+.classif-table td.r{text-align:right;}
+.pos-medal{font-size:18px;width:32px;display:inline-block;text-align:center;}
+.pos-num{width:24px;height:24px;border-radius:50%;background:var(--paper);border:1px solid var(--line);display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--ink-s);}
+.colla-link{font-weight:800;font-size:14px;color:var(--ink);text-decoration:none;}
+.colla-link:hover{color:var(--red);}
+.top3-mini{display:flex;flex-direction:column;gap:3px;}
+.top3-mini-item{font-size:11px;color:var(--ink-s);display:flex;align-items:center;gap:4px;}
+.top3-mini-item b{color:var(--ink);}
+.total-big{font-size:16px;font-weight:800;color:var(--red);}
+.total-big.zero{color:#D1D5DB;}
+.no-colles{text-align:center;padding:48px;color:var(--ink-s);}
+.no-colles-ico{font-size:48px;opacity:.3;margin-bottom:12px;}
+.eq-badge{display:inline-block;padding:1px 6px;border-radius:3px;font-size:9px;font-weight:800;background:#F1F5F9;color:#64748B;margin-left:6px;}
+.pen-badge{font-size:10px;color:var(--red);}
+
+/* TAULA PUNTUACIONS */
+.grup-hdr{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:#fff;background:var(--red);padding:5px 12px;border-radius:5px 5px 0 0;}
+.punt-t{width:100%;border-collapse:collapse;font-size:13px;border:1px solid var(--line);border-top:none;margin-bottom:18px;}
+.punt-t th{background:var(--paper);padding:7px 12px;font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-s);text-align:left;border-bottom:1px solid var(--line);}
+.punt-t th:not(:first-child){text-align:right;}
+.punt-t td{padding:8px 12px;border-bottom:1px solid var(--line);}
+.punt-t tr:last-child td{border-bottom:none;}
+.punt-t tr:hover td{background:var(--red-soft);}
+.punt-t td:not(:first-child){text-align:right;font-variant-numeric:tabular-nums;}
+.pc{color:var(--amber);font-weight:600;}
+.pd{color:var(--green);font-weight:700;}
+.diff{font-size:10px;color:var(--ink-s);}
+.llegenda{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;}
+.leg{font-size:10px;color:var(--ink-s);display:flex;align-items:center;gap:4px;}
+.leg-code{font-family:monospace;font-size:9px;background:var(--paper);border:1px solid var(--line);padding:1px 5px;border-radius:3px;font-weight:700;}
+
+/* NORMATIVA */
+.norma{font-size:13px;color:var(--ink-s);line-height:1.7;}
+.norma strong{color:var(--ink);}
+.norma ul,.norma ol{margin:6px 0 6px 20px;}
+.norma p{margin-bottom:10px;}
+
+/* RESPONSIVE */
+@media(max-width:600px){
+  .hdr{padding:10px 14px;}
+  .hdr h1{font-size:15px;}
+  .hdr-badge{display:none;}
+  .form-grid{grid-template-columns:1fr;}
+  .kpis{grid-template-columns:1fr 1fr;}
+  .top3-mini{display:none;}
+  .ci-pts-lbl{display:none;}
+  .pane{padding:12px;}
+  .card{padding:14px;}
+  .ntab{padding:10px 12px;font-size:11px;}
+  .colla-hdr{gap:8px;}
+  .colla-name-input{font-size:16px;}
+  .colla-score-badge{font-size:12px;padding:4px 10px;}
+  .classif-table td,.classif-table th{padding:8px 6px;}
+  .res-btn{font-size:12px;padding:10px 2px;}
+  select{font-size:16px;}
+}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <img src="data:image/png;base64,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" style="height:48px;width:auto;object-fit:contain;border-radius:6px;" alt="Logo Castells">
+  <div>
+    <h1>Calculadora de Castells</h1>
+    <p>Taula de puntuacions 2024 · Concurs de Castells</p>
+  </div>
+  <div class="hdr-badge">CDC 2024</div>
+</div>
+
+<nav class="nav" id="nav">
+  <!-- generada per JS -->
+</nav>
+
+<!-- PANE CLASSIFICACIÓ -->
+<div class="pane active" id="pane-classif">
+  <div class="card">
+    <div class="ctitle">🏆 Classificació</div>
+    <div id="classif-body"></div>
+  </div>
+</div>
+
+<!-- PANE TAULA -->
+<div class="pane" id="pane-taula">
+  <div class="card">
+    <div class="ctitle">📊 Taula de puntuacions 2024</div>
+    <div id="taula-body"></div>
+    <div class="llegenda">
+      <div class="leg"><span class="leg-code">f</span> amb folre</div>
+      <div class="leg"><span class="leg-code">a</span> amb agulla/pilar</div>
+      <div class="leg"><span class="leg-code">ps</span> aixecat per sota</div>
+      <div class="leg"><span class="leg-code">fm</span> folre i manilles</div>
+      <div class="leg"><span class="leg-code">fa</span> folre i agulla</div>
+      <div class="leg"><span class="leg-code">sf</span> sense folre</div>
+      <div class="leg"><span class="leg-code">sm</span> sense manilles</div>
+      <div class="leg"><span class="leg-code">fmp</span> folre, manilles i puntals</div>
+    </div>
+  </div>
+</div>
+
+<!-- PANE NORMATIVA -->
+<div class="pane" id="pane-info">
+  <div class="card">
+    <div class="ctitle">📋 Normativa bàsica · CDC 2024</div>
+    <div class="norma">
+      <p><strong>Art. 16.3 — Puntuació final:</strong> La puntuació de cada colla és la suma de les <strong>tres millors construccions</strong> completades al llarg de totes les actuacions.</p>
+      <p><strong>Castells repetits:</strong> Si la colla fa el <strong>mateix castell dues vegades</strong>, només compta el <strong>millor intent</strong> per al càlcul de la suma.</p>
+      <p><strong>Resultats:</strong></p>
+      <ul>
+        <li><strong style="color:var(--green)">Descarregat</strong> — castell complet i desmuntat → punts màxims</li>
+        <li><strong style="color:var(--amber)">Carregat</strong> — castell completat però no desmuntat → punts reducats</li>
+        <li><strong style="color:var(--red)">Caiguda</strong> — castell no completat → 0 punts</li>
+      </ul>
+      <br>
+      <p><strong>Criteris de desempat</strong> (en ordre):</p>
+      <ol>
+        <li>Menys caigudes (penalitzacions)</li>
+        <li>Puntuació del millor castell individual</li>
+        <li>Puntuació del segon millor castell</li>
+        <li>Ex aequo si tot coincideix</li>
+      </ol>
+      <br>
+      <p><strong>Construccions invàlides:</strong> Si la colla no segueix el programa anunciat al jurat, actua fora del format establert, o incorpora membres aliens a la colla a la base.</p>
+    </div>
+  </div>
+</div>
+
+<!-- PANES COLLA (generats per JS) -->
+
+<script>
+// ── DADES ──────────────────────────────────────────────────────────────────
+const TAULA = [
+  {g:0, n:'2 de 6',      c:175,  d:200 },
+  {g:0, n:'P de 5',      c:185,  d:210 },
+  {g:1, n:'9 de 6',      c:230,  d:265 },
+  {g:1, n:'4 de 7',      c:240,  d:275 },
+  {g:1, n:'3 de 7',      c:250,  d:290 },
+  {g:2, n:'3 de 7 a',    c:330,  d:360 },
+  {g:2, n:'4 de 7 a',    c:345,  d:380 },
+  {g:2, n:'7 de 7',      c:350,  d:400 },
+  {g:2, n:'5 de 7',      c:365,  d:420 },
+  {g:2, n:'7 de 7 a',    c:415,  d:440 },
+  {g:2, n:'5 de 7 a',    c:425,  d:450 },
+  {g:2, n:'3 de 7 ps',   c:435,  d:460 },
+  {g:3, n:'9 de 7',      c:500,  d:575 },
+  {g:3, n:'2 de 7',      c:525,  d:605 },
+  {g:3, n:'4 de 8',      c:550,  d:635 },
+  {g:3, n:'P de 6',      c:580,  d:665 },
+  {g:3, n:'3 de 8',      c:610,  d:700 },
+  {g:4, n:'7 de 8',      c:760,  d:875 },
+  {g:4, n:'2 de 8 f',    c:800,  d:920 },
+  {g:4, n:'P de 7 f',    c:835,  d:960 },
+  {g:4, n:'5 de 8',      c:880,  d:1010},
+  {g:4, n:'4 de 8 a',    c:965,  d:1060},
+  {g:4, n:'3 de 8 a',    c:1005, d:1110},
+  {g:4, n:'7 de 8 a',    c:1025, d:1125},
+  {g:4, n:'5 de 8 a',    c:1055, d:1165},
+  {g:5, n:'4 de 9 f',    c:1270, d:1460},
+  {g:5, n:'3 de 9 f',    c:1335, d:1530},
+  {g:6, n:'9 de 8',      c:1665, d:1915},
+  {g:6, n:'3 de 8 ps',   c:1825, d:2005},
+  {g:6, n:'2 de 9 fm',   c:1835, d:2110},
+  {g:6, n:'P de 8 fm',   c:1925, d:2210},
+  {g:6, n:'7 de 9 f',    c:2020, d:2320},
+  {g:6, n:'5 de 9 f',    c:2090, d:2400},
+  {g:6, n:'4 de 9 fa',   c:2250, d:2475},
+  {g:6, n:'3 de 9 fa',   c:2315, d:2555},
+  {g:7, n:'4 de 9 sf',   c:2680, d:3195},
+  {g:7, n:'2 de 8 sf',   c:2765, d:3300},
+  {g:7, n:'3 de 10 fm',  c:2775, d:3405},
+  {g:7, n:'4 de 10 fm',  c:2870, d:3510},
+  {g:7, n:'9 de 9 f',    c:3190, d:3670},
+  {g:7, n:'2 de 9 sm',   c:3245, d:3865},
+  {g:7, n:'P de 9 fmp',  c:3410, d:4060},
+  {g:7, n:'3 de 9 sf',   c:3570, d:4250},
+  {g:7, n:'2 de 10 fmp', c:3880, d:4460},
+  {g:7, n:'4 de 10 sm',  c:3935, d:4685},
+  {g:7, n:'3 de 10 sm',  c:4125, d:4910},
+];
+
+// ── ESTAT ──────────────────────────────────────────────────────────────────
+var colles = [];
+var activePane = 'classif'; // 'classif' | 'taula' | 'info' | collaId
+var nextCollaId = 1;
+var nextCId = 1;
+var collaResult = {}; // collaId → 'd'|'c'|'f'
+
+function getT(nom){ return TAULA.find(function(t){return t.n===nom;})||null; }
+function fmt(n){ return n.toLocaleString('ca-ES'); }
+function pts(item){
+  if(item.res==='d') return item.d;
+  if(item.res==='c') return item.c;
+  return 0;
+}
+
+// ── PUNTUACIÓ PER COLLA ─────────────────────────────────────────────────
+function scoreOf(colla){
+  var best={};
+  colla.castells.forEach(function(ci){
+    var p=pts(ci);
+    if(!best[ci.nom]||p>best[ci.nom].p) best[ci.nom]={nom:ci.nom,g:ci.g,res:ci.res,p:p};
+  });
+  var cands=Object.keys(best).map(function(k){return best[k];}).filter(function(b){return b.p>0;}).sort(function(a,b){return b.p-a.p;});
+  var top3=cands.slice(0,3);
+  var total=top3.reduce(function(s,b){return s+b.p;},0);
+  var penalties=colla.castells.filter(function(ci){return ci.res==='f';}).length;
+  return {top3:top3, total:total, penalties:penalties, best:best};
+}
+
+// ── CLASSIFICACIÓ ──────────────────────────────────────────────────────────
+function ranked(){
+  return colles.map(function(colla){
+    var sc=scoreOf(colla); sc.colla=colla; return sc;
+  }).sort(function(a,b){
+    if(b.total!==a.total) return b.total-a.total;
+    if(a.penalties!==b.penalties) return a.penalties-b.penalties;
+    var aT=a.top3[0]?a.top3[0].p:0, bT=b.top3[0]?b.top3[0].p:0;
+    if(bT!==aT) return bT-aT;
+    var aS=a.top3[1]?a.top3[1].p:0, bS=b.top3[1]?b.top3[1].p:0;
+    return bS-aS;
+  });
+}
+
+// ── RENDER NAV ─────────────────────────────────────────────────────────────
+function renderNav(){
+  var nav=document.getElementById('nav');
+  var h='';
+  h+='<button class="ntab'+(activePane==='classif'?' active':'')+'" onclick="showPane(\'classif\')">🏆 Classificació</button>';
+  colles.forEach(function(colla){
+    var sc=scoreOf(colla);
+    var label=colla.nom||(colla.nom='Colla '+colla.id);
+    h+='<button class="ntab'+(activePane===colla.id?' active':'')+'" onclick="showPane('+colla.id+')">'
+      +escH(label)
+      +(sc.total>0?'<span style="font-size:9px;background:var(--red);color:#fff;border-radius:3px;padding:1px 5px;margin-left:4px;">'+fmt(sc.total)+'</span>':'')
+      +'<span class="ntab-close" onclick="removeColla('+colla.id+',event)">✕</span>'
+      +'</button>';
+  });
+  h+='<button class="ntab ntab-add" onclick="addColla()">+ Colla</button>';
+  h+='<div class="ntab-sep"></div>';
+  h+='<button class="ntab ntab-ref'+(activePane==='taula'?' active':'')+'" onclick="showPane(\'taula\')">📊 Taula</button>';
+  h+='<button class="ntab ntab-ref'+(activePane==='info'?' active':'')+'" onclick="showPane(\'info\')">📋 Normativa</button>';
+  nav.innerHTML=h;
+}
+
+// ── SHOW PANE ──────────────────────────────────────────────────────────────
+function showPane(id){
+  activePane=id;
+  document.querySelectorAll('.pane').forEach(function(p){p.classList.remove('active');});
+  var paneId=(id==='classif'||id==='taula'||id==='info')?'pane-'+id:'pane-colla-'+id;
+  var el=document.getElementById(paneId);
+  if(el) el.classList.add('active');
+  renderNav();
+  if(id==='classif') renderClassif();
+  else if(typeof id==='number') renderColla(id);
+}
+
+// ── AFEGIR / ELIMINAR COLLA ────────────────────────────────────────────────
+function addColla(){
+  var id=nextCollaId++;
+  colles.push({id:id, nom:'Colla '+id, castells:[]});
+  collaResult[id]='d';
+  createCollaPane(id);
+  showPane(id);
+}
+
+function removeColla(id, e){
+  e.stopPropagation();
+  var colla=colles.find(function(c){return c.id===id;});
+  if(colla && colla.castells.length>0 && !confirm('Eliminar '+escH(colla.nom)+'?')) return;
+  colles=colles.filter(function(c){return c.id!==id;});
+  var pane=document.getElementById('pane-colla-'+id);
+  if(pane) pane.remove();
+  if(activePane===id) showPane('classif');
+  else { renderNav(); renderClassif(); }
+}
+
+// ── CREAR PANE DE COLLA ────────────────────────────────────────────────────
+function createCollaPane(id){
+  var div=document.createElement('div');
+  div.className='pane';
+  div.id='pane-colla-'+id;
+
+  // Build options HTML
+  var opts='<option value="">— Selecciona un castell —</option>';
+  var lastG=-1;
+  TAULA.forEach(function(t){
+    if(t.g!==lastG){
+      if(lastG!==-1) opts+='</optgroup>';
+      opts+='<optgroup label="Grup '+t.g+'">';
+      lastG=t.g;
+    }
+    opts+='<option value="'+t.n+'">'+t.n+'</option>';
+  });
+  opts+='</optgroup>';
+
+  div.innerHTML=
+    '<div class="colla-hdr">'+
+    '<input class="colla-name-input" id="name-'+id+'" value="Colla '+id+'" oninput="renameColla('+id+',this.value)" placeholder="Nom de la colla…">'+
+    '<span class="colla-score-badge" id="score-badge-'+id+'">0 <span>pts</span></span>'+
+    '<button class="btn btn-ghost" style="font-size:11px;padding:5px 10px;" onclick="clearColla('+id+')">↺ Buidar</button>'+
+    '</div>'+
+
+    '<div class="card">'+
+    '<div class="ctitle">➕ Afegeix un castell</div>'+
+    '<div class="form-grid">'+
+    '<div class="field"><label>Castell</label><select id="sel-'+id+'" onchange="updatePrev('+id+')">'+opts+'</select></div>'+
+    '<div class="field"><label>Resultat</label>'+
+    '<div class="res-grp">'+
+    '<button class="res-btn sel-d" id="rb-d-'+id+'" onclick="setRes('+id+',\'d\')">Descarregat</button>'+
+    '<button class="res-btn" id="rb-c-'+id+'" onclick="setRes('+id+',\'c\')">Carregat</button>'+
+    '<button class="res-btn" id="rb-f-'+id+'" onclick="setRes('+id+',\'f\')">Caiguda</button>'+
+    '</div>'+
+    '</div>'+
+    '</div>'+
+    '<div class="pts-prev" id="prev-'+id+'" style="display:none">'+
+    '<span>Descarregat: <b id="pd-'+id+'"></b></span>'+
+    '<span>Carregat: <b id="pc-'+id+'"></b></span>'+
+    '<span>Grup: <b id="pg-'+id+'"></b></span>'+
+    '</div>'+
+    '<div style="text-align:right;margin-top:10px;">'+
+    '<button class="btn btn-red" onclick="addCastell('+id+')">Afegir</button>'+
+    '</div>'+
+    '</div>'+
+
+    '<div class="card" id="score-card-'+id+'" style="display:none">'+
+    '<div class="ctitle">🏆 Puntuació</div>'+
+    '<div class="kpis">'+
+    '<div class="kpi"><div class="kpi-lbl">Total (3 millors)</div><div class="kpi-val" id="kt-'+id+'">0</div><div class="kpi-sub">punts</div></div>'+
+    '<div class="kpi"><div class="kpi-lbl">Computats</div><div class="kpi-val g" id="kc-'+id+'">0</div><div class="kpi-sub">de 3 possibles</div></div>'+
+    '<div class="kpi"><div class="kpi-lbl">Millor castell</div><div class="kpi-val" id="kb-'+id+'" style="font-size:15px;">—</div><div class="kpi-sub" id="kbs-'+id+'"></div></div>'+
+    '</div>'+
+    '<table class="t3"><thead><tr><th>#</th><th>Castell</th><th>Resultat</th><th class="r">Punts</th></tr></thead><tbody id="t3b-'+id+'"></tbody></table>'+
+    '</div>'+
+
+    '<div class="card">'+
+    '<div class="ctitle" style="justify-content:space-between;">'+
+    '<span>📋 Castells realitzats</span><span id="cnt-'+id+'" style="font-size:10px;color:var(--ink-s);"></span>'+
+    '</div>'+
+    '<div class="clist" id="clist-'+id+'">'+
+    '<div class="empty"><div class="empty-ico">🏰</div>Afegeix castells per calcular la puntuació</div>'+
+    '</div>'+
+    '</div>';
+
+  document.body.appendChild(div);
+}
+
+// ── RENAME ────────────────────────────────────────────────────────────────
+function renameColla(id, val){
+  var colla=colles.find(function(c){return c.id===id;});
+  if(colla) colla.nom=val;
+  renderNav();
+  renderClassif();
+}
+
+// ── SET RESULT ────────────────────────────────────────────────────────────
+function setRes(id, r){
+  collaResult[id]=r;
+  document.getElementById('rb-d-'+id).className='res-btn'+(r==='d'?' sel-d':'');
+  document.getElementById('rb-c-'+id).className='res-btn'+(r==='c'?' sel-c':'');
+  document.getElementById('rb-f-'+id).className='res-btn'+(r==='f'?' sel-f':'');
+  updatePrev(id);
+}
+
+function updatePrev(id){
+  var nom=document.getElementById('sel-'+id).value;
+  var prev=document.getElementById('prev-'+id);
+  if(!nom){prev.style.display='none';return;}
+  var t=getT(nom); if(!t){prev.style.display='none';return;}
+  document.getElementById('pd-'+id).textContent=fmt(t.d)+' pts';
+  document.getElementById('pc-'+id).textContent=fmt(t.c)+' pts';
+  document.getElementById('pg-'+id).textContent='Grup '+t.g;
+  prev.style.display='flex';
+}
+
+// ── ADD CASTELL ────────────────────────────────────────────────────────────
+function addCastell(id){
+  var nom=document.getElementById('sel-'+id).value;
+  if(!nom) return;
+  var t=getT(nom); if(!t) return;
+  var colla=colles.find(function(c){return c.id===id;}); if(!colla) return;
+  colla.castells.push({cid:nextCId++, nom:nom, g:t.g, c:t.c, d:t.d, res:collaResult[id]||'d'});
+  renderColla(id);
+  renderClassif();
+}
+
+// ── REMOVE CASTELL ─────────────────────────────────────────────────────────
+function removeCastell(collaId, cid){
+  var colla=colles.find(function(c){return c.id===collaId;}); if(!colla) return;
+  colla.castells=colla.castells.filter(function(ci){return ci.cid!==cid;});
+  renderColla(collaId);
+  renderClassif();
+}
+
+// ── CLEAR COLLA ────────────────────────────────────────────────────────────
+function clearColla(id){
+  var colla=colles.find(function(c){return c.id===id;}); if(!colla) return;
+  if(colla.castells.length>0 && !confirm('Buidar tots els castells de '+escH(colla.nom)+'?')) return;
+  colla.castells=[];
+  renderColla(id);
+  renderClassif();
+}
+
+// ── RENDER COLLA ───────────────────────────────────────────────────────────
+function renderColla(id){
+  var colla=colles.find(function(c){return c.id===id;}); if(!colla) return;
+  var sc=scoreOf(colla);
+  var {top3, total, penalties, best}=sc;
+  var top3Names=top3.map(function(b){return b.nom;});
+
+  // Determinar duplicats per ítem
+  var usedBest={};
+  var itemInfo=colla.castells.map(function(ci){
+    var p=pts(ci);
+    var isBest=(best[ci.nom]&&best[ci.nom].p===p&&!usedBest[ci.nom]);
+    if(isBest) usedBest[ci.nom]=true;
+    var inTop=top3Names.includes(ci.nom)&&isBest;
+    return {p:p, isBest:isBest, inTop:inTop};
+  });
+
+  // Lista
+  var listEl=document.getElementById('clist-'+id);
+  if(colla.castells.length===0){
+    listEl.innerHTML='<div class="empty"><div class="empty-ico">🏰</div>Afegeix castells per calcular la puntuació</div>';
+  } else {
+    var lh='';
+    colla.castells.forEach(function(ci,i){
+      var inf=itemInfo[i];
+      var isDup=!inf.isBest&&ci.res!=='f';
+      var cls='ci'+(inf.inTop?' top':isDup?' dup':ci.res==='f'?' fall':'');
+      var bCls=ci.res==='d'?'bd':ci.res==='c'?'bc':'bf';
+      var bTxt=ci.res==='d'?'D':ci.res==='c'?'C':'F';
+      var bFullTxt=ci.res==='d'?'Descarregat':ci.res==='c'?'Carregat':'Caiguda';
+      var extras=(inf.inTop?'<span class="badge bt">⭐ Top 3</span>':'')+(isDup?'<span class="badge bdup">Duplicat</span>':'');
+      var ptsTxt=inf.p>0?fmt(inf.p):'0';
+      var ptsCls='ci-pts'+(inf.p===0?' z':'');
+      lh+='<div class="'+cls+'">'+
+        '<div class="ci-n">'+(i+1)+'</div>'+
+        '<div class="ci-info">'+
+          '<div class="name">'+escH(ci.nom)+'</div>'+
+          '<div class="meta"><span class="badge '+bCls+'">'+bTxt+'</span> <span style="opacity:.6">G'+ci.g+'</span> '+extras+'</div>'+
+        '</div>'+
+        '<div class="'+ptsCls+'" title="'+bFullTxt+'">'+ptsTxt+'</div>'+
+        '<button class="del-btn" onclick="removeCastell('+id+','+ci.cid+')">✕</button>'+
+        '</div>';
+    });
+    listEl.innerHTML=lh;
+  }
+
+  document.getElementById('cnt-'+id).textContent=colla.castells.length?colla.castells.length+' castell'+(colla.castells.length!==1?'s':''):'';
+
+  // Score badge nav
+  var badge=document.getElementById('score-badge-'+id);
+  if(badge){ badge.innerHTML=fmt(total)+' <span>pts</span>'; }
+
+  // Score card
+  var scoreCard=document.getElementById('score-card-'+id);
+  if(!scoreCard) return;
+  if(colla.castells.length===0){ scoreCard.style.display='none'; renderNav(); return; }
+  scoreCard.style.display='block';
+
+  document.getElementById('kt-'+id).textContent=fmt(total);
+  document.getElementById('kc-'+id).textContent=top3.length;
+  if(top3.length>0){
+    document.getElementById('kb-'+id).textContent=top3[0].nom;
+    document.getElementById('kbs-'+id).textContent=fmt(top3[0].p)+' pts';
+  } else {
+    document.getElementById('kb-'+id).textContent='—';
+    document.getElementById('kbs-'+id).textContent='';
+  }
+
+  // Top3 table
+  var tbody=document.getElementById('t3b-'+id);
+  if(!tbody) return;
+  if(top3.length===0){
+    tbody.innerHTML='<tr><td colspan="4" style="text-align:center;color:var(--ink-s);padding:12px">Cap castell completat</td></tr>';
+  } else {
+    var th=''; var ranks=['🥇','🥈','🥉'];
+    top3.forEach(function(b,i){
+      var rTxt=b.res==='d'?'<span class="badge bd">Descarregat</span>':'<span class="badge bc">Carregat</span>';
+      th+='<tr>'+
+        '<td><span class="rank-dot">'+ranks[i]+'</span></td>'+
+        '<td><strong>'+escH(b.nom)+'</strong><br><small style="color:var(--ink-s)">Grup '+b.g+'</small></td>'+
+        '<td>'+rTxt+'</td>'+
+        '<td class="r">'+fmt(b.p)+' <small style="color:var(--ink-s);font-weight:400">pts</small></td>'+
+        '</tr>';
+    });
+    if(top3.length>1){
+      th+='<tr class="total-row">'+
+        '<td colspan="3" style="text-align:right;">Total</td>'+
+        '<td class="r total-pts">'+fmt(total)+' <small style="font-size:11px;font-weight:400;color:var(--ink-s)">pts</small></td>'+
+        '</tr>';
+    }
+    tbody.innerHTML=th;
+  }
+  renderNav();
+}
+
+// ── RENDER CLASSIFICACIÓ ───────────────────────────────────────────────────
+function renderClassif(){
+  var el=document.getElementById('classif-body');
+  if(colles.length===0){
+    el.innerHTML='<div class="no-colles"><div class="no-colles-ico">🏆</div><p>Afegeix colles per veure la classificació</p><br><button class="btn btn-red" onclick="addColla()">+ Afegir primera colla</button></div>';
+    return;
+  }
+  var r=ranked();
+  var medals=['🥇','🥈','🥉'];
+  var h='<table class="classif-table"><thead><tr>'+
+    '<th>#</th><th>Colla</th><th>Castells (top 3)</th>'+
+    '<th class="r">Total</th><th class="r" title="Caigudes">⚠️</th>'+
+    '</tr></thead><tbody>';
+
+  var lastTotal=-1, lastPen=-1, lastB1=-1, lastB2=-1, pos=0, displayPos=0;
+  r.forEach(function(row,i){
+    pos++;
+    var b1=row.top3[0]?row.top3[0].p:0;
+    var b2=row.top3[1]?row.top3[1].p:0;
+    var isEq=(row.total===lastTotal&&row.penalties===lastPen&&b1===lastB1&&b2===lastB2);
+    if(!isEq) displayPos=pos;
+    lastTotal=row.total; lastPen=row.penalties; lastB1=b1; lastB2=b2;
+
+    var posHtml=displayPos<=3?'<span class="pos-medal">'+medals[displayPos-1]+'</span>':'<span class="pos-num">'+displayPos+'</span>';
+    if(isEq) posHtml='<span class="pos-medal" title="Empat">—</span>';
+
+    var top3mini='';
+    if(row.top3.length===0){
+      top3mini='<span style="color:var(--ink-s);font-size:11px">Sense castells completats</span>';
+    } else {
+      row.top3.forEach(function(b){
+        var rBadge=b.res==='d'?'<span class="badge bd">D</span>':'<span class="badge bc">C</span>';
+        top3mini+='<div class="top3-mini-item">'+rBadge+' <b>'+escH(b.nom)+'</b> <span style="color:var(--ink-s)">'+fmt(b.p)+' pts</span></div>';
+      });
+    }
+
+    var eqBadge=isEq?'<span class="eq-badge">Ex aequo</span>':'';
+    var penHtml=row.penalties>0?'<span class="pen-badge">'+row.penalties+'</span>':'<span style="color:#D1D5DB">0</span>';
+
+    h+='<tr onclick="showPane('+row.colla.id+')" title="Veure castells de '+escH(row.colla.nom)+'">'+
+      '<td>'+posHtml+'</td>'+
+      '<td><span class="colla-link">'+escH(row.colla.nom||'Colla '+row.colla.id)+'</span>'+eqBadge+'</td>'+
+      '<td><div class="top3-mini">'+top3mini+'</div></td>'+
+      '<td class="r"><span class="total-big'+(row.total===0?' zero':'')+'">'+fmt(row.total)+'</span></td>'+
+      '<td class="r">'+penHtml+'</td>'+
+      '</tr>';
+  });
+
+  h+='</tbody></table>';
+  el.innerHTML=h;
+}
+
+// ── RENDER TAULA ──────────────────────────────────────────────────────────
+function renderTaula(){
+  var el=document.getElementById('taula-body');
+  var h=''; var lastG=-1;
+  TAULA.forEach(function(t){
+    if(t.g!==lastG){
+      if(lastG!==-1) h+='</tbody></table>';
+      h+='<div class="grup-hdr">Grup '+t.g+'</div>';
+      h+='<table class="punt-t"><thead><tr><th>Castell</th><th>Carregat</th><th>Descarregat</th><th>+Bonus</th></tr></thead><tbody>';
+      lastG=t.g;
+    }
+    h+='<tr><td><strong>'+t.n+'</strong></td><td class="pc">'+fmt(t.c)+'</td><td class="pd">'+fmt(t.d)+'</td><td class="diff">+'+(t.d-t.c)+'</td></tr>';
+  });
+  h+='</tbody></table>';
+  el.innerHTML=h;
+}
+
+// ── ESCAPE HTML ───────────────────────────────────────────────────────────
+function escH(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ── INIT ─────────────────────────────────────────────────────────────────
+function init(){
+  renderTaula();
+  // Crear 2 colles per defecte
+  addColla();
+  addColla();
+  showPane('classif');
+}
+
+init();
+</script>
+</body>
+</html>
